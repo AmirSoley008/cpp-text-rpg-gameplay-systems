@@ -3,4 +3,4 @@ project(untitled3)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(untitled3 main.cpp Character.cpp Character.h Warrior.cpp Warrior.h Mage.cpp Mage.h Archer.cpp Archer.h Skill.cpp Skill.h Game.cpp Game.h)
+add_executable(untitled3 main.cpp Character.cpp Character.h Warrior.cpp Warrior.h Mage.cpp Mage.h Archer.cpp Archer.h Skill.cpp Skill.h Game.cpp Game.h ActionExecutor.cpp ActionExecutor.h ActionType.h)

@@ -57,26 +57,13 @@ void Character::attack(Character &target) {
 }
 
 Stats Character::getDefaultStats(CharacterClass characterClass) {
-    if (characterClass == CharacterClass::Warrior)return {250 , 350, 20, 35, 50};
+    if (characterClass == CharacterClass::Warrior)return {250 , 350, 30, 35, 50};
     if (characterClass == CharacterClass::Mage)return {200 , 250, 60, 65, 30};
     if (characterClass == CharacterClass::Archer)return {200 , 250, 40, 45, 40};
     return {0,0,0,0,0};
 }
 
 void Character::printInfo() {
-    std::cout <<"name is "
-              <<name
-              <<std::endl
-              <<"health is "
-              <<stats.health
-              <<std::endl
-              <<"mana is "
-              <<stats.mana
-              <<std::endl
-              <<"damage is "
-              <<stats.damage
-              <<std::endl
-              << std::endl ;
     switch(playerClass)
     {
         case CharacterClass::Warrior:
@@ -91,6 +78,19 @@ void Character::printInfo() {
             std::cout << "Archer"<<std::endl;
             break;
     }
+    std::cout <<"name is "
+              <<name
+              <<std::endl
+              <<"health is "
+              <<stats.health
+              <<std::endl
+              <<"mana is "
+              <<stats.mana
+              <<std::endl
+              <<"damage is "
+              <<stats.damage
+              <<std::endl
+              << std::endl ;
 }
 
 void Character::addSkill(const Skill& skil) {
@@ -122,4 +122,10 @@ bool Character::hasEnoughMana(int amount) const {
 
 Skill &Character::getSkill(int index) {
     return skills[index];
+}
+
+void Character::onRoundEnd() {
+    for (auto &skill : skills) {
+        skill.tickCooldown();
+    }
 }

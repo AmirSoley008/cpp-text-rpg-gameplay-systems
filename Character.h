@@ -81,6 +81,8 @@ public:
     bool hasEnoughMana(int amount) const;
 
     Skill& getSkill(int index);
+
+    void onRoundEnd();
 };
 
 

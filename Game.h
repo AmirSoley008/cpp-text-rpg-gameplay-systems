@@ -9,12 +9,8 @@
 #include "Mage.h"
 #include "Warrior.h"
 #include "Archer.h"
-
-enum class ActionType {
-    Attack,
-    Fireball,
-    Heal
-};
+#include "ActionType.h"
+#include "ActionExecutor.h"
 
 class Game {
 private:
@@ -26,13 +22,15 @@ private:
 
     std::vector<std::unique_ptr<Character>> characters;
 
+    ActionExecutor executor;
+
 public:
     ActionType action;
 
     Game(){
         characterAdder();
         Skill fireball("Fireball", 10, 80, 2,10, SkillType::damage);
-        Skill heal("Heal", 20, 0, 1,50, SkillType::heal);
+        Skill heal("Heal", 10, 0, 1,50, SkillType::heal);
         characters[0]->addSkill(fireball);
         characters[0]->addSkill(heal);
         characters[1]->addSkill(fireball);

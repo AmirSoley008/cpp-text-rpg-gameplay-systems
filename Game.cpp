@@ -10,42 +10,27 @@
 void Game::start() {
     std::cout << "Round " << round << " Starts" << std::endl;
     while (gameContinue){
-        if (characters.size() == 1){
+        while (true){
+            action = chooseAction();
+            int targetIndex = chooseTarget();
+            if (executor.execute(action, currentCharacter(), *characters[targetIndex]) == Result::Success){
+                if (!characters[targetIndex]->isAlive()) characters.erase(characters.begin() + targetIndex);
+                break;
+            } else std::cout << "choose Action again!" << std::endl;
+        } if (characters.size() == 1){
             std::cout << characters[0]->getName() << " has won the game " << std::endl;
             break;
         } else {
-            while (true){
-                action = chooseAction();
-                if (action == ActionType::Attack) {
-                    int targetIndex = chooseTarget();
-                    currentCharacter().attack(*characters[targetIndex]);
-                    if (!characters[targetIndex]->isAlive()) characters.erase(characters.begin() + targetIndex);
-                    break;
-                }
-                if (action == ActionType::Fireball) {
-                    int targetIndex = chooseTarget();
-                    if (currentCharacter().useSkill(0 ,*characters[targetIndex])) {
-                        if (!characters[targetIndex]->isAlive()) characters.erase(characters.begin() + targetIndex);
-                        break;
-                    } else std::cout << "choose Action again!" << std::endl;
-                }
-                if (action == ActionType::Heal) {
-                    int targetIndex = chooseTarget();
-                    if (currentCharacter().useSkill(1, *characters[targetIndex])) {
-                        if (!characters[targetIndex]->isAlive()) characters.erase(characters.begin() + targetIndex);
-                        break;
-                    } else {
-                        std::cout << "choose Action again!" << std::endl;
-                    }
-                }
-            } activeCharacterIndex ++;
+            activeCharacterIndex ++;
             if (activeCharacterIndex >= characters.size()){
                 activeCharacterIndex = 0;
+                for (auto& character : characters) {
+                    character->onRoundEnd();
+                }
                 round ++;
                 std::cout << "Round " << round << " Starts" << std::endl;
             }
         }
-
     }
 }
 
@@ -114,7 +99,7 @@ ActionType Game::chooseAction() {
             }
         }
     } else{
-        if (currentCharacter().getSkill(1).isReady() && currentCharacter().getHealth() <= 50) return ActionType::Heal;
+        if (currentCharacter().getSkill(1).isReady() && currentCharacter().hasEnoughMana(currentCharacter().getSkill(1).getManaCost()) && currentCharacter().getHealth() <= 50 ) return ActionType::Heal;
         else if (currentCharacter().getSkill(0).isReady() && currentCharacter().hasEnoughMana(currentCharacter().getSkill(0).getManaCost())) return ActionType::Fireball;
         else return ActionType::Attack;
     }

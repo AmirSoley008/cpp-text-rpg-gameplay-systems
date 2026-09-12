@@ -21,6 +21,7 @@ struct SkillStats{
     int coolDown;
 
     int healAmount;
+
     SkillStats(int mc, int d, int cd,int ha)
             :damage(d),
              manaCost(mc),

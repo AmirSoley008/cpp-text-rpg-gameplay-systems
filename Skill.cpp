@@ -20,7 +20,7 @@ bool Skill::use(Character& caster, Character& target) {
         return false;
     }
     if (!isReady()) {
-        std::cout<<" cooldown is not ready yet! wait"<<std::endl;
+        std::cout<< getSkillName() <<" cooldown is not ready yet! wait"<<std::endl;
         return false;
     }
     if (skillType == SkillType::damage) {
