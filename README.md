@@ -1,85 +1,101 @@
 # C++ Text RPG Gameplay Systems
 
-A C++ project focused on learning and implementing gameplay systems, Modern C++, memory management, and gameplay architecture.
+A small turn-based RPG project built with C++.
+
+The project started as a simple RPG prototype and is being used as a practical space for learning C++ gameplay programming, system design, and gameplay architecture.
+
+The goal is not to build a large RPG. The goal is to make the codebase progressively better as the gameplay systems become more complex.
 
 ## Current Status
 
-The project started as a small object-oriented RPG prototype and is being gradually evolved into a more structured Gameplay Systems project.
+The combat loop is functional and supports player-controlled and AI-controlled characters, skills, cooldowns, turn progression, character selection, and rematches.
 
-**Current milestone: Week 4 - Turn System / Gameplay Loop Architecture**
-
-The current prototype has a structured turn-based gameplay flow with separate responsibilities for decision-making, action execution, action resolution, turn advancement, and round progression.
+The game now supports selecting a player character before a match, resetting the match after it ends, choosing between a rematch and exiting, and selecting a character again when starting a new match.
 
 ## Current Systems
 
-* Character System
-* Character Stats
-* Health and Mana
-* Combat
+* Character system
+* Character stats
+* Health and mana
+* Combat actions
 * Skills
-* Skill Cooldowns
-* Turn Management
-* Action Execution
-* Round-based Cooldown Progression
-* Combat End Conditions
-* Player and AI Decision Flow
-
-## Gameplay Flow
-
-The current gameplay loop follows this general flow:
-
-```text
-Player / AI Decision
-        ↓
-Action Selection
-        ↓
-ActionExecutor
-        ↓
-Character / Skill
-        ↓
-Action Resolution
-        ↓
-Game State Update
-        ↓
-Turn Advancement
-        ↓
-Round Progression
-```
-
-A successful action ends the current turn. Failed actions do not consume the turn and allow the current character to choose another action.
-
-At the end of a round, character skills update their cooldown state.
+* Skill cooldowns
+* Turn management
+* Round progression
+* Action execution
+* Player and AI turns
+* Character selection
+* Match reset
+* Rematch flow
+* Post-game choice
 
 ## Architecture
 
-The project is being developed incrementally, with each stage focused on a specific gameplay engineering problem rather than feature quantity.
+The project currently keeps the main gameplay coordination inside `Game`.
 
-Current responsibilities include:
+`Game` is responsible for the overall match flow, character management, turn and round progression, player selection, and deciding when a match ends.
 
-* **Game** - coordinates gameplay flow, turn and round progression, character management, and combat end conditions.
-* **ActionExecutor** - executes the selected action and reports whether the action succeeded.
-* **Character** - owns character state, stats, skills, and character-level gameplay operations.
-* **Skill** - owns skill behavior and cooldown state.
+`ActionExecutor` handles the execution of gameplay actions such as attacks and skills.
 
-The architecture is intentionally evolving as new gameplay systems are introduced.
+`Character` owns its stats and skills and provides character-level gameplay operations.
+
+`Skill` contains skill data and cooldown state.
+
+Character objects are owned by `Game` through `std::unique_ptr`. The selected player character is tracked separately through a non-owning pointer, so the player's identity does not depend on the character's position in the turn order.
+
+The architecture is intentionally kept small. New abstractions are introduced when they solve an actual problem rather than simply because they are common game-development patterns.
+
+## Game Flow and State Machines
+
+The game flow now includes a clear lifecycle around each match.
+
+The player first selects a character, then enters the turn-based combat loop. When the match ends, the player can choose to start a rematch or exit the game.
+
+A rematch creates a new set of characters, resets the match state, and allows the player to select a character again.
+
+A state machine was considered for representing different stages of the game flow, with states such as `CharacterSelection`, `PlayerTurn`, `AITurn`, `GameResult`, and `PostGameSelection`.
+
+The concept was evaluated against the RPG itself. For the current size and structure of this project, introducing a full state machine into the combat loop would add structure without solving a significant problem. Because of that, the RPG does not currently use a state machine.
+
+Instead, the game flow is currently handled with the existing loop and functions, which are sufficient for the current scope of the project.
+
+This distinction is intentional. Gameplay architecture patterns are evaluated based on the problems they solve rather than being added simply because they are common in game development.
+
+## Gameplay
+
+The game is a simple turn-based combat prototype.
+
+Each character can perform actions during their turn. The player selects actions and targets manually, while AI-controlled characters make their decisions automatically.
+
+Skills have cooldowns that progress with rounds.
+
+When only one character remains alive, the match ends. The player can then start a new match or exit the game.
 
 ## Goals
 
-The long-term goal is to transform the initial RPG prototype into a well-structured C++ Gameplay Systems project demonstrating:
+The project is being developed as a foundation for gameplay programming with C++.
+
+Areas currently being explored include:
 
 * Modern C++
-* Memory and Ownership
-* STL
-* Algorithms
-* Gameplay Architecture
-* State Machines
-* Event-driven Design
-* Modular Gameplay Systems
-* Testing and Debugging
-* Performance and Code Quality
+* Memory ownership and lifetime
+* STL and algorithms
+* Object-oriented design
+* Composition
+* Gameplay architecture
+* State machines
+* Event-driven design
+* Ability systems
+* Combat systems
+* Testing and debugging
+* Performance and code quality
+
+Not every topic is implemented immediately. Some are explored through isolated exercises before deciding whether they belong in the RPG itself.
 
 ## Project Direction
 
-This project is primarily an engineering and learning project rather than a feature-heavy RPG.
+This is an engineering project, not a content-heavy RPG.
 
-The focus is on understanding how gameplay systems can be designed, separated, tested, and evolved in C++ while keeping the resulting architecture explainable and maintainable.
+The important part is the process of taking a gameplay problem, designing a solution, implementing it in C++, and then evaluating whether the resulting architecture actually makes the code easier to understand and change.
+
+As the project progresses, the codebase will continue to evolve toward more modular gameplay systems while avoiding unnecessary abstractions.
