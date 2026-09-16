@@ -9,14 +9,6 @@
 
 int main() {
 
-    Warrior geralt("Geralt");
-    Mage yen("Yennifer");
-    Archer legolas("Legolas");
-
-    legolas.printInfo();
-    geralt.printInfo();
-    yen.printInfo();
-
     Game game;
     game.start();
 

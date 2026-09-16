@@ -12,6 +12,11 @@
 #include "ActionType.h"
 #include "ActionExecutor.h"
 
+enum class PostGameChoice {
+    Rematch,
+    Exit
+};
+
 class Game {
 private:
     int activeCharacterIndex = 0;
@@ -24,30 +29,32 @@ private:
 
     ActionExecutor executor;
 
+    Character* playerCharacter = nullptr;
 public:
     ActionType action;
 
     Game(){
         characterAdder();
-        Skill fireball("Fireball", 10, 80, 2,10, SkillType::damage);
-        Skill heal("Heal", 10, 0, 1,50, SkillType::heal);
-        characters[0]->addSkill(fireball);
-        characters[0]->addSkill(heal);
-        characters[1]->addSkill(fireball);
-        characters[1]->addSkill(heal);
-        characters[2]->addSkill(fireball);
-        characters[2]->addSkill(heal);
+        skillAdder();
     }
 
     void start();
 
     void characterAdder();
 
+    void skillAdder();
+
     int chooseTarget();
 
     ActionType chooseAction();
 
     Character& currentCharacter();
+
+    void selectPlayerCharacter();
+
+    void resetMatch();
+
+    PostGameChoice postGameChoice();
 };
 
 
