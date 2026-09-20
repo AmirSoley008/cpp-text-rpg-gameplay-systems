@@ -48,6 +48,8 @@ void Game::characterAdder() {
     characters.push_back(std::make_unique<Warrior>("geralt"));
     characters.push_back(std::make_unique<Mage>("yen"));
     characters.push_back(std::make_unique<Archer>("legolas"));
+    characters.push_back(std::make_unique<Warrior>("John snow"));
+    characters.push_back(std::make_unique<Archer>("Aragorn"));
 }
 
 void Game::skillAdder() {
@@ -59,6 +61,10 @@ void Game::skillAdder() {
     characters[1]->addSkill(heal);
     characters[2]->addSkill(fireball);
     characters[2]->addSkill(heal);
+    characters[3]->addSkill(fireball);
+    characters[3]->addSkill(heal);
+    characters[4]->addSkill(fireball);
+    characters[4]->addSkill(heal);
 }
 
 int Game::chooseTarget() {
@@ -186,7 +192,9 @@ void Game::resetMatch() {
 PostGameChoice Game::postGameChoice() {
     while (true){
         std::cout << "do you want a rematch?"
+                  <<std::endl
                   << "1.Rematch"
+                  <<std::endl
                   << "2.Exit"
                   <<std::endl;
 
