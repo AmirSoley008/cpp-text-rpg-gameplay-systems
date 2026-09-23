@@ -16,7 +16,10 @@ void Game::start() {
             action = chooseAction();
             int targetIndex = chooseTarget();
             if (executor.execute(action, currentCharacter(), *characters[targetIndex]) == Result::Success){
-                if (!characters[targetIndex]->isAlive()) characters.erase(characters.begin() + targetIndex);
+                if (!characters[targetIndex]->isAlive()) {
+                    eventBus.publish(CharacterKilled(&currentCharacter() , &*characters[targetIndex]));
+                    characters.erase(characters.begin() + targetIndex);
+                }
                 break;
             } else std::cout << "choose Action again!" << std::endl;
         } if (characters.size() == 1){
@@ -184,6 +187,10 @@ void Game::resetMatch() {
     round = 1;
     gameContinue = true;
     playerCharacter = nullptr;
+
+    statistics.reset();
+    bloodlust.reset();
+
     characters.clear();
     characterAdder();
     skillAdder();

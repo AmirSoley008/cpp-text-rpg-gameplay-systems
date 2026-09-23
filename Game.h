@@ -11,6 +11,10 @@
 #include "Archer.h"
 #include "ActionType.h"
 #include "ActionExecutor.h"
+#include "EventBus.h"
+#include "Statistics.h"
+#include "KillRewarder.h"
+#include "Bloodlust.h"
 
 enum class PostGameChoice {
     Rematch,
@@ -29,6 +33,14 @@ private:
 
     ActionExecutor executor;
 
+    EventBus eventBus;
+
+    Statistics statistics;
+
+    KillRewarder killRewarder;
+
+    Bloodlust bloodlust;
+
     Character* playerCharacter = nullptr;
 public:
     ActionType action;
@@ -36,6 +48,24 @@ public:
     Game(){
         characterAdder();
         skillAdder();
+        eventBus.subscribe<CharacterKilled>(
+                [&](const CharacterKilled& event)
+                {
+                    statistics.registerKill(event);
+                }
+        );
+        eventBus.subscribe<CharacterKilled>(
+                [&](const CharacterKilled& event)
+                {
+                    killRewarder.onCharacterKilled(event);
+                }
+        );
+        eventBus.subscribe<CharacterKilled>(
+                [&](const CharacterKilled& event)
+                {
+                    bloodlust.onCharacterKilled(event);
+                }
+        );
     }
 
     void start();

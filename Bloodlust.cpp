@@ -17,3 +17,7 @@ void Bloodlust::onCharacterKilled(const CharacterKilled &event) {
         countList[event.killer] = 0;
     }
 }
+
+void Bloodlust::reset() {
+    countList.clear();
+}

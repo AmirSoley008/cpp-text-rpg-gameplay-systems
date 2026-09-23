@@ -10,6 +10,8 @@ class Character;
 struct CharacterKilled{
     Character* killer;
     Character* victim;
+    CharacterKilled(Character* killer, Character* victim)
+    : killer(killer), victim(victim) {}
 };
 
 #endif //UNTITLED3_CHARACTERKILLED_H

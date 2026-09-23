@@ -14,6 +14,8 @@ private:
 
 public:
     void onCharacterKilled(const CharacterKilled& event);
+
+    void reset();
 };
 
 

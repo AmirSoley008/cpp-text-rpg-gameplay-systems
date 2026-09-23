@@ -18,6 +18,8 @@ private:
     std::unordered_map<const Character*,std::vector<Character*>>killedList;
 public:
     void registerKill(const CharacterKilled& event);
+
+    void reset();
 };
 
 

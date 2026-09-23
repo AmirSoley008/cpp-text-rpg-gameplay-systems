@@ -10,3 +10,8 @@ void Statistics::registerKill(const CharacterKilled& event) {
 
     countList[event.killer] += 1;
 }
+
+void Statistics::reset() {
+    killedList.clear();
+    countList.clear();
+}
