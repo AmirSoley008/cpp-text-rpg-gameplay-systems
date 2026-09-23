@@ -23,7 +23,7 @@ void Game::start() {
                 break;
             } else std::cout << "choose Action again!" << std::endl;
         } if (characters.size() == 1){
-            std::cout << characters[0]->getName() << " has won the game " << std::endl;
+            eventBus.publish(MatchEnded(&*characters[0]));
             PostGameChoice choice = postGameChoice();
             if (choice == PostGameChoice::Rematch){
                 resetMatch();

@@ -13,13 +13,15 @@ class Character;
 
 class Statistics {
 private:
-    std::unordered_map<const Character*,int>countList;
+    std::unordered_map<std::string ,int>countList;
 
-    std::unordered_map<const Character*,std::vector<Character*>>killedList;
+    std::unordered_map<std::string ,std::vector<std::string>>killedList;
 public:
     void registerKill(const CharacterKilled& event);
 
     void reset();
+
+    void showSummary();
 };
 
 

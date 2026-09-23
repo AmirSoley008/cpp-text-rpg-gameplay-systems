@@ -6,11 +6,35 @@ The project started as a simple RPG prototype and is being used as a practical s
 
 The goal is not to build a large RPG. The goal is to make the codebase progressively better as the gameplay systems become more complex.
 
+## Project Goals
+
+The primary goal of this project is to develop the engineering skills required for C++ gameplay programming.
+
+The project focuses on:
+
+* Modern C++
+* Memory ownership and object lifetime
+* STL and algorithms
+* Object-oriented design
+* Composition
+* Gameplay architecture
+* Event-driven systems
+* Ability and skill architecture
+* Combat systems
+* State machines
+* Testing and debugging
+* Performance and code quality
+* Architectural decision-making
+
+The emphasis is on **engineering depth rather than feature count**.
+
 ## Current Status
 
 The combat loop is functional and supports player-controlled and AI-controlled characters, skills, cooldowns, turn progression, character selection, and rematches.
 
-The game now supports selecting a player character before a match, resetting the match after it ends, choosing between a rematch and exiting, and selecting a character again when starting a new match.
+The game currently supports selecting a player character before a match, resetting the match after it ends, choosing between a rematch and exiting, and selecting a character again when starting a new match.
+
+The project also includes an event-driven system for gameplay events such as character deaths and match completion.
 
 ## Current Systems
 
@@ -28,12 +52,16 @@ The game now supports selecting a player character before a match, resetting the
 * Match reset
 * Rematch flow
 * Post-game choice
+* Event-driven gameplay reactions
+* Kill statistics and history
+* Kill rewards
+* Kill-streak rewards
 
 ## Architecture
 
 The project currently keeps the main gameplay coordination inside `Game`.
 
-`Game` is responsible for the overall match flow, character management, turn and round progression, player selection, and deciding when a match ends.
+`Game` is responsible for the overall match flow, character management, turn and round progression, player selection, match completion, and publishing gameplay events.
 
 `ActionExecutor` handles the execution of gameplay actions such as attacks and skills.
 
@@ -41,21 +69,67 @@ The project currently keeps the main gameplay coordination inside `Game`.
 
 `Skill` contains skill data and cooldown state.
 
+`EventBus` provides communication between gameplay systems through events, allowing multiple systems to react to the same gameplay occurrence without requiring `Game` to directly coordinate every reaction.
+
+`Statistics` tracks kill counts and kill history.
+
+`KillRewarder` handles the mana reward given to a character after a kill.
+
+`Bloodlust` tracks kill streaks and provides an additional reward when a character reaches three consecutive kills.
+
 Character objects are owned by `Game` through `std::unique_ptr`. The selected player character is tracked separately through a non-owning pointer, so the player's identity does not depend on the character's position in the turn order.
 
 The architecture is intentionally kept small. New abstractions are introduced when they solve an actual problem rather than simply because they are common game-development patterns.
 
-## Game Flow and State Machines
+## Event-Driven Architecture
 
-The game flow now includes a clear lifecycle around each match.
+The project uses an event-driven system for gameplay occurrences that can have multiple independent reactions.
 
-The player first selects a character, then enters the turn-based combat loop. When the match ends, the player can choose to start a rematch or exit the game.
+The main example is `CharacterKilled`.
 
-A rematch creates a new set of characters, resets the match state, and allows the player to select a character again.
+When a character is killed, `Game` publishes a `CharacterKilled` event. Systems interested in the event subscribe independently and react to it without `Game` needing to directly call each system.
+
+Currently, `CharacterKilled` is used by:
+
+* `Statistics` to record kills and kill history
+* `KillRewarder` to award mana to the killer
+* `Bloodlust` to track kill streaks and apply its reward
+
+The project also uses a `MatchEnded` event when only one character remains alive. The event carries the winning character and allows interested systems to react to the end of the match.
+
+The event system currently uses:
+
+* `std::function`
+* `std::any`
+* `std::type_index`
+* Lambda callbacks
+* Template-based `subscribe` / `publish`
+
+The EventBus is synchronous, so events are dispatched immediately to their registered callbacks.
+
+## Architecture Decisions
+
+### EventBus Instead of Direct System Calls
+
+**Problem**
+
+Multiple systems needed to react to a character death.
+
+**Decision**
+
+`Game` publishes `CharacterKilled` through `EventBus`.
+
+**Result**
+
+Statistics, rewards, and kill-streak behavior can react independently without requiring `Game` to directly coordinate every reaction.
+
+### State Machine Evaluated but Not Integrated
 
 A state machine was considered for representing different stages of the game flow, with states such as `CharacterSelection`, `PlayerTurn`, `AITurn`, `GameResult`, and `PostGameSelection`.
 
-The concept was evaluated against the RPG itself. For the current size and structure of this project, introducing a full state machine into the combat loop would add structure without solving a significant problem. Because of that, the RPG does not currently use a state machine.
+The concept was implemented and studied separately.
+
+After evaluating it against the RPG itself, a full state machine was not integrated into the project because the current gameplay flow did not have a problem that justified the additional abstraction.
 
 Instead, the game flow is currently handled with the existing loop and functions, which are sufficient for the current scope of the project.
 
@@ -67,30 +141,13 @@ The game is a simple turn-based combat prototype.
 
 Each character can perform actions during their turn. The player selects actions and targets manually, while AI-controlled characters make their decisions automatically.
 
-Skills have cooldowns that progress with rounds.
+Skills have mana costs, effects, types, and cooldowns that progress with rounds.
 
-When only one character remains alive, the match ends. The player can then start a new match or exit the game.
+When a character dies, the game publishes a `CharacterKilled` event before removing the character from the match. This allows gameplay systems such as statistics and rewards to react to the event independently.
 
-## Goals
+When only one character remains alive, the match ends and a `MatchEnded` event is published. The winner is announced and the player can then choose to start a new match or exit the game.
 
-The project is being developed as a foundation for gameplay programming with C++.
-
-Areas currently being explored include:
-
-* Modern C++
-* Memory ownership and lifetime
-* STL and algorithms
-* Object-oriented design
-* Composition
-* Gameplay architecture
-* State machines
-* Event-driven design
-* Ability systems
-* Combat systems
-* Testing and debugging
-* Performance and code quality
-
-Not every topic is implemented immediately. Some are explored through isolated exercises before deciding whether they belong in the RPG itself.
+A rematch creates a new set of characters, resets the match state, and allows the player to select a character again.
 
 ## Project Direction
 

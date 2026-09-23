@@ -15,6 +15,7 @@
 #include "Statistics.h"
 #include "KillRewarder.h"
 #include "Bloodlust.h"
+#include "MatchEnded.h"
 
 enum class PostGameChoice {
     Rematch,
@@ -66,6 +67,21 @@ public:
                     bloodlust.onCharacterKilled(event);
                 }
         );
+        eventBus.subscribe<MatchEnded>(
+                [&](const MatchEnded& event)
+                {
+                    statistics.showSummary();
+                }
+                );
+        eventBus.subscribe<MatchEnded>(
+                [&](const MatchEnded& event)
+                {
+                    std::cout << std::endl
+                              << event.winner->getName()
+                              << " has won the game "
+                              << std::endl;
+                }
+                );
     }
 
     void start();
