@@ -16,6 +16,15 @@ void Character::heal(int amout) {
     else std::cout<<"heath is full!"<<std::endl;
 }
 
+void Character::addMana(int amount) {
+    if (stats.mana < stats.maxMana) {
+        stats.mana += amount;
+        if (stats.mana > stats.maxMana){
+            stats.mana = stats.maxMana;}
+    }
+    else std::cout<<"mana is full!"<<std::endl;
+}
+
 bool Character::isAlive() const {
     return stats.health > 0;
 }

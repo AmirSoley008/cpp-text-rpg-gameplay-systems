@@ -83,6 +83,8 @@ public:
     Skill& getSkill(int index);
 
     void onRoundEnd();
+
+    void addMana(int amount);
 };
 
 
