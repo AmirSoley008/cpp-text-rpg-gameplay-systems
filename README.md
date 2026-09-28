@@ -30,11 +30,23 @@ The emphasis is on **engineering depth rather than feature count**.
 
 ## Current Status
 
-The combat loop is functional and supports player-controlled and AI-controlled characters, skills, cooldowns, turn progression, character selection, and rematches.
+The combat loop is functional and supports player-controlled and AI-controlled characters, skills, cooldowns, turn progression, character selection, rematches, and persistent gameplay effects.
 
 The game currently supports selecting a player character before a match, resetting the match after it ends, choosing between a rematch and exiting, and selecting a character again when starting a new match.
 
 The project also includes an event-driven system for gameplay events such as character deaths and match completion.
+
+Abilities are now built through composable operations rather than ability-specific logic inside `Game` or `ActionExecutor`.
+
+The current ability architecture supports:
+
+* Direct damage
+* Direct healing
+* Persistent damage
+* Persistent healing
+* Abilities composed from multiple operations
+
+The project also includes an `EffectSystem` responsible for owning and updating active persistent effects.
 
 ## Current Systems
 
@@ -42,7 +54,8 @@ The project also includes an event-driven system for gameplay events such as cha
 * Character stats
 * Health and mana
 * Combat actions
-* Skills
+* Skills and abilities
+* Operation-based ability composition
 * Skill cooldowns
 * Turn management
 * Round progression
@@ -52,6 +65,7 @@ The project also includes an event-driven system for gameplay events such as cha
 * Match reset
 * Rematch flow
 * Post-game choice
+* Persistent gameplay effects
 * Event-driven gameplay reactions
 * Kill statistics and history
 * Kill rewards
@@ -63,11 +77,17 @@ The project currently keeps the main gameplay coordination inside `Game`.
 
 `Game` is responsible for the overall match flow, character management, turn and round progression, player selection, match completion, and publishing gameplay events.
 
-`ActionExecutor` handles the execution of gameplay actions such as attacks and skills.
+`ActionExecutor` handles the execution of generic gameplay actions such as attacks and skill usage. It does not contain ability-specific branches for individual skills.
 
 `Character` owns its stats and skills and provides character-level gameplay operations.
 
-`Skill` contains skill data and cooldown state.
+`Skill` represents an ability, including its operations, resource requirements, and cooldown state. A skill can contain multiple operations, allowing abilities to be composed from reusable gameplay operations.
+
+`Operation` represents an individual gameplay operation performed by a skill. Operation data is represented through `std::variant`, currently supporting direct damage, direct healing, persistent damage, and persistent healing.
+
+`EffectSystem` owns and updates active persistent effects. Skills create persistent effects through the `EffectRegistrar` interface without depending directly on the internal implementation of `EffectSystem`.
+
+`EffectRegistrar` provides a narrow interface through which skills can register newly created effects. This keeps effect creation separate from effect ownership and management.
 
 `EventBus` provides communication between gameplay systems through events, allowing multiple systems to react to the same gameplay occurrence without requiring `Game` to directly coordinate every reaction.
 
@@ -79,7 +99,103 @@ The project currently keeps the main gameplay coordination inside `Game`.
 
 Character objects are owned by `Game` through `std::unique_ptr`. The selected player character is tracked separately through a non-owning pointer, so the player's identity does not depend on the character's position in the turn order.
 
+Active persistent effects are owned by `EffectSystem`. When an effect references a character that dies, the character remains alive in memory while required by an active effect. Effect cleanup is handled by the effect system and gameplay lifecycle.
+
 The architecture is intentionally kept small. New abstractions are introduced when they solve an actual problem rather than simply because they are common game-development patterns.
+
+## Ability Architecture
+
+Abilities are represented as composable `Skill` objects rather than as separate hardcoded cases inside the game flow.
+
+A `Skill` contains one or more `Operation` objects. Each operation contains a specific operation data type.
+
+For example:
+
+* `Fireball` → Damage
+* `Heal` → Heal
+* `PoisonStrike` → Persistent Damage
+* `Regeneration` → Persistent Heal
+* `VenomStrike` → Damage + Persistent Damage
+
+This allows a new ability to be created by composing existing operations without requiring a new `ActionType` or a new ability-specific branch inside `ActionExecutor`.
+
+The architecture separates the general concept of using a skill from the specific gameplay operations performed by that skill.
+
+## Operation-Based Ability Composition
+
+Operation data is represented using `std::variant`.
+
+Current operation data types include:
+
+* `DamageData`
+* `HealData`
+* `PersistentDamageData`
+* `PersistentHealData`
+
+A skill can contain multiple operations, and the operations are executed sequentially when the skill is used.
+
+This allows composite abilities to be represented through data composition instead of creating a separate class or execution path for every ability.
+
+For example:
+
+```cpp
+Skill venomStrike(
+    "VenomStrike",
+    {
+        {DamageData{40}},
+        {PersistentDamageData{5, 2}}
+    },
+    20,
+    2
+);
+```
+
+The ability therefore applies immediate damage and also creates a persistent damage effect without requiring special handling in `Game` or `ActionExecutor`.
+
+## Effect System
+
+Persistent gameplay effects are separated from direct skill execution.
+
+`Skill` creates persistent effects when required, while `EffectSystem` owns and updates the active effects.
+
+Current persistent effects include:
+
+* Persistent damage
+* Persistent healing
+
+The `EffectSystem` updates active effects during round progression and removes effects when they expire or their targets are no longer valid.
+
+Effects store their relevant caster and target references and maintain their own duration and operation data.
+
+The system is designed so that a skill does not need to know how active effects are stored, updated, or cleaned up.
+
+## Ownership and Lifetime
+
+The current ownership model is:
+
+* `Game` owns `Character` objects.
+* `Character` owns its `Skill` objects.
+* `EffectSystem` owns active `Effect` objects.
+* `Skill` creates effects but does not own them.
+* `EffectRegistrar` provides a narrow interface for effect registration.
+* Active effects may keep a dead character alive until the effect no longer references that character.
+
+This separates creation, ownership, and lifecycle responsibilities between the gameplay systems.
+
+## Action Execution
+
+Action types represent generic categories of player actions rather than specific abilities.
+
+Current actions include:
+
+* `Attack`
+* `UseSkill`
+
+The selected skill is represented separately by its skill index.
+
+This means `ActionExecutor` does not need to know whether a `UseSkill` action represents `Fireball`, `Heal`, `PoisonStrike`, or another ability.
+
+Adding a new ability therefore does not require adding a new `ActionType` or modifying the generic action execution logic.
 
 ## Event-Driven Architecture
 
@@ -94,6 +210,7 @@ Currently, `CharacterKilled` is used by:
 * `Statistics` to record kills and kill history
 * `KillRewarder` to award mana to the killer
 * `Bloodlust` to track kill streaks and apply its reward
+* `EffectSystem` to remove effects targeting a killed character
 
 The project also uses a `MatchEnded` event when only one character remains alive. The event carries the winning character and allows interested systems to react to the end of the match.
 
@@ -121,7 +238,7 @@ Multiple systems needed to react to a character death.
 
 **Result**
 
-Statistics, rewards, and kill-streak behavior can react independently without requiring `Game` to directly coordinate every reaction.
+Statistics, rewards, kill-streak behavior, and effect cleanup can react independently without requiring `Game` to directly coordinate every reaction.
 
 ### State Machine Evaluated but Not Integrated
 
@@ -141,9 +258,11 @@ The game is a simple turn-based combat prototype.
 
 Each character can perform actions during their turn. The player selects actions and targets manually, while AI-controlled characters make their decisions automatically.
 
-Skills have mana costs, effects, types, and cooldowns that progress with rounds.
+Skills have mana costs, effects, and cooldowns that progress with rounds.
 
-When a character dies, the game publishes a `CharacterKilled` event before removing the character from the match. This allows gameplay systems such as statistics and rewards to react to the event independently.
+Skills can contain multiple operations, allowing a single ability to combine different gameplay behaviors. Persistent operations create effects that continue across subsequent rounds.
+
+When a character dies, the game publishes a `CharacterKilled` event before removing the character from the match. This allows gameplay systems such as statistics, rewards, kill streaks, and effect cleanup to react to the event independently.
 
 When only one character remains alive, the match ends and a `MatchEnded` event is published. The winner is announced and the player can then choose to start a new match or exit the game.
 
