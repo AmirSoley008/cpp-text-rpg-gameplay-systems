@@ -108,11 +108,11 @@ void Character::addSkill(const Skill& skil) {
     }else skills.push_back(skil);
 }
 
-bool Character::useSkill(int index, Character &target) {
+bool Character::useSkill(int index, Character &target, EffectRegistrar& effectRegistrar) {
     if (index >=0 && index < skills.size()) {
         Skill &skill = skills[index];
         std::cout << this->getName() << " wants to use " << skill.getSkillName() << std::endl;
-        if (skill.use(*this, target)) {
+        if (skill.use(*this, target, effectRegistrar)) {
             std::cout << this->getName() << " used a " << skill.getSkillName() << " on " << target.getName()
                       << std::endl;
             std::cout << target.getName()
@@ -137,4 +137,8 @@ void Character::onRoundEnd() {
     for (auto &skill : skills) {
         skill.tickCooldown();
     }
+}
+
+const std::vector<Skill>& Character::getSkillsList() const{
+    return skills;
 }

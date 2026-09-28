@@ -17,7 +17,7 @@ enum class Result{
 
 class ActionExecutor {
 public:
-    Result execute(ActionType action, Character& caster, Character& target);
+    Result execute(ActionType action,int skillIndex, Character& caster, Character& target, EffectRegistrar& effectRegistrar);
 };
 
 

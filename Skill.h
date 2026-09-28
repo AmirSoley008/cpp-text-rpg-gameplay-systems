@@ -6,34 +6,34 @@
 #define UNTITLED3_SKILL_H
 
 #include <string>
+#include <variant>
+#include <vector>
+#include "EffectRegistrar.h"
+#include "OperationData.h"
 class Character;
 
-enum class SkillType{
-    damage,
-    heal
-};
-
 struct SkillStats{
-    int damage;
-
     int manaCost;
 
     int coolDown;
 
-    int healAmount;
-
-    SkillStats(int mc, int d, int cd,int ha)
-            :damage(d),
-             manaCost(mc),
-             coolDown(cd),
-             healAmount(ha){}
+    SkillStats(int mc, int cd)
+            :manaCost(mc),
+             coolDown(cd){}
 };
 
+struct Operation{
+    std::variant<
+        DamageData,
+        HealData,
+        PersistentDamageData,
+        PersistentHealData> data;
+};
 class Skill{
 protected:
-    SkillType skillType;
-
     std::string name;
+
+    std::vector<Operation> operations;
 
     SkillStats skillStats;
 
@@ -42,14 +42,14 @@ protected:
 public:
 
 
-    Skill(const std::string& name,int manaCost,int damage,int cooldown,int healAmount,SkillType skillType)
+    Skill(const std::string& name, const std::vector<Operation>& operations, int manaCost, int cooldown)
         :name(name),
-         skillStats(manaCost,damage,cooldown,healAmount),
-         skillType(skillType),
+         operations(operations),
+         skillStats(manaCost,cooldown),
          currentCoolDown(0)
     {
     }
-    bool use(Character& caster,Character& target);
+    bool use(Character& caster,Character& target, EffectRegistrar& effectRegistrar);
 
     const std::string& getSkillName() const;
 
@@ -58,6 +58,10 @@ public:
     bool isReady() const;
 
     void tickCooldown();
+
+    bool providesHealing() const;
+
+    bool providesDamaging() const;
 };
 
 

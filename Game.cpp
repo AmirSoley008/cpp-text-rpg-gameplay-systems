@@ -15,9 +15,12 @@ void Game::start() {
         while (true){
             action = chooseAction();
             int targetIndex = chooseTarget();
-            if (executor.execute(action, currentCharacter(), *characters[targetIndex]) == Result::Success){
+            if (executor.execute(action, selectedSkillIndex, currentCharacter(), *characters[targetIndex], effectSystem) == Result::Success){
                 if (!characters[targetIndex]->isAlive()) {
                     eventBus.publish(CharacterKilled(&currentCharacter() , &*characters[targetIndex]));
+                    if (effectSystem.hasActiveEffectsFrom(characters[targetIndex].get())){
+                        deadCharacters.push_back(std::move(characters[targetIndex]));
+                    }
                     characters.erase(characters.begin() + targetIndex);
                 }
                 break;
@@ -39,8 +42,60 @@ void Game::start() {
                 for (auto& character : characters) {
                     character->onRoundEnd();
                 }
-                round ++;
-                std::cout << "Round " << round << " Starts" << std::endl;
+                auto deathReport = effectSystem.update();
+                if (!deathReport.empty()){
+                    for (const auto &reaport:deathReport) {
+                        for (auto &victim:reaport.second) {
+                            eventBus.publish(CharacterKilled(reaport.first, victim));
+                            auto it = std::find_if(
+                                    characters.begin(),
+                                    characters.end(),
+                                    [victim](const auto& character)
+                                    {
+                                        return character.get() == victim;
+                                    }
+                                    );
+                            if (it != characters.end()) {
+                                if (effectSystem.hasActiveEffectsFrom(victim)){
+                                    deadCharacters.push_back(std::move(*it));
+                                }
+                                characters.erase(it);
+                            }
+                        }
+                    }
+                }
+                for (auto it = deadCharacters.begin(); it != deadCharacters.end();) {
+                    if (!effectSystem.hasActiveEffectsFrom(it->get())) {
+                        it = deadCharacters.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+                if (characters.size() == 1){
+                    eventBus.publish(MatchEnded(&*characters[0]));
+                    PostGameChoice choice = postGameChoice();
+                    if (choice == PostGameChoice::Rematch){
+                        resetMatch();
+                        selectPlayerCharacter();
+                        continue;
+                    } else{
+                        gameContinue = false;
+                    }
+                } else if (characters.empty()){
+                    std::cout << "The match ended in a draw!" << std::endl;
+                    PostGameChoice choice = postGameChoice();
+                    if (choice == PostGameChoice::Rematch){
+                        resetMatch();
+                        selectPlayerCharacter();
+                        continue;
+                    } else{
+                        gameContinue = false;
+                    }
+                }
+                if (gameContinue) {
+                    round++;
+                    std::cout << "Round " << round << " Starts" << std::endl;
+                }
             }
         }
     }
@@ -56,16 +111,22 @@ void Game::characterAdder() {
 }
 
 void Game::skillAdder() {
-    Skill fireball("Fireball", 20, 80, 2,10, SkillType::damage);
-    Skill heal("Heal", 10, 0, 1,50, SkillType::heal);
-    characters[0]->addSkill(fireball);
+    Skill fireball("Fireball",{{DamageData{70}}}, 20, 2);
+    Skill heal("Heal",{{HealData{50}}}, 10, 1);
+    Skill poisonStrike("PoisonStrike",{{PersistentDamageData{10,3}}}, 15, 3);
+    Skill regeneration("Regeneration",{{PersistentHealData{10,2}}}, 15, 2);
+    Skill venomStrike("VenomStrike",{{DamageData{40}},{PersistentDamageData{5,2}}},20,2);
+    characters[0]->addSkill(poisonStrike);
     characters[0]->addSkill(heal);
     characters[1]->addSkill(fireball);
     characters[1]->addSkill(heal);
-    characters[2]->addSkill(fireball);
+    characters[1]->addSkill(regeneration);
+    characters[2]->addSkill(regeneration);
     characters[2]->addSkill(heal);
-    characters[3]->addSkill(fireball);
-    characters[3]->addSkill(heal);
+    characters[2]->addSkill(poisonStrike);
+    characters[3]->addSkill(regeneration);
+    characters[3]->addSkill(venomStrike);
+    characters[3]->addSkill(poisonStrike);
     characters[4]->addSkill(fireball);
     characters[4]->addSkill(heal);
 }
@@ -74,12 +135,13 @@ int Game::chooseTarget() {
     if (&currentCharacter() == playerCharacter) {
         while (true) {
             std::cout << "Who is your target?" << std::endl;
-            for (int i = 0; i <= characters.size() - 1; ++i) {
+            for (int i = 0; i < characters.size(); ++i) {
                 std::cout << i << "." << characters[i]->getName() << std::endl;
             }
             int choose;
             std::cin >> choose;
-            if (action == ActionType::Heal) {
+            const auto &skills = currentCharacter().getSkillsList();
+            if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing()) {
                 if (choose >= 0 && choose <= characters.size() - 1) {
                     return choose;
                 } else {
@@ -95,7 +157,8 @@ int Game::chooseTarget() {
         }
     }else {
         int choose;
-        if (action == ActionType::Heal) {
+        const auto &skills = currentCharacter().getSkillsList();
+        if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing()) {
             choose = activeCharacterIndex;
             return choose;
         }
@@ -113,29 +176,43 @@ ActionType Game::chooseAction() {
             std::cout << "what action do you want to perform?"
                       << std::endl
                       << "1.Attack!!"
-                      << std::endl
-                      << "2.Fireball"
-                      << std::endl
-                      << "3.Heal"
                       << std::endl;
+            for (int i = 0; i < playerCharacter->getSkillsList().size(); ++i) {
+                std::cout << i + 2
+                          << "."
+                          << playerCharacter->getSkillsList()[i].getSkillName()
+                          << std::endl;
+            }
             int chooseAct;
             std::cin >> chooseAct;
-            switch (chooseAct) {
-                case 1:
-                    return ActionType::Attack;
-                case 2:
-                    return ActionType::Fireball;
-                case 3:
-                    return ActionType::Heal;
-                default:
-                    std::cout << "Invalid number is chosen please retry noobie"
-                              << std::endl;
+
+            if (chooseAct == 1){
+                selectedSkillIndex = -1;
+                return ActionType::Attack;
+            } else if (chooseAct >= 2 && static_cast<int>(playerCharacter->getSkillsList().size()+2)){
+                selectedSkillIndex = chooseAct - 2;
+                return ActionType::UseSkill;
             }
+            std::cout << "Invalid number is chosen please retry noobie" << std::endl;
         }
     } else{
-        if (currentCharacter().getSkill(1).isReady() && currentCharacter().hasEnoughMana(currentCharacter().getSkill(1).getManaCost()) && currentCharacter().getHealth() <= 50 ) return ActionType::Heal;
-        else if (currentCharacter().getSkill(0).isReady() && currentCharacter().hasEnoughMana(currentCharacter().getSkill(0).getManaCost())) return ActionType::Fireball;
-        else return ActionType::Attack;
+        if (currentCharacter().getHealth() <=50){
+            const auto &skills = currentCharacter().getSkillsList();
+
+            for (int i = 0; i < skills.size(); ++i) {
+                if (skills[i].providesHealing() && skills[i].isReady() && currentCharacter().hasEnoughMana(skills[i].getManaCost())){
+                    selectedSkillIndex = i;
+                    return ActionType::UseSkill;
+                }
+            }
+        } const auto &skills = currentCharacter().getSkillsList();
+        for (int i = 0; i < skills.size(); ++i) {
+            if (skills[i].providesDamaging() && skills[i].isReady() && currentCharacter().hasEnoughMana(skills[i].getManaCost())){
+                selectedSkillIndex = i;
+                return ActionType::UseSkill;
+            }
+        } selectedSkillIndex = -1;
+        return ActionType::Attack;
     }
 }
 
@@ -191,6 +268,8 @@ void Game::resetMatch() {
     statistics.reset();
     bloodlust.reset();
 
+    effectSystem.resetActiveEffects();
+    deadCharacters.clear();
     characters.clear();
     characterAdder();
     skillAdder();

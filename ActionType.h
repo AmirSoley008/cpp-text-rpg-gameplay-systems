@@ -7,8 +7,7 @@
 
 enum class ActionType {
     Attack,
-    Fireball,
-    Heal
+    UseSkill
 };
 
 #endif //UNTITLED3_ACTIONTYPE_H

@@ -64,7 +64,7 @@ public:
 
     void addSkill(const Skill& skil);
 
-    bool useSkill(int index , Character& target);
+    bool useSkill(int index , Character& target, EffectRegistrar& effectRegistrar);
 
     static Stats getDefaultStats(CharacterClass characterClass);
 
@@ -81,6 +81,8 @@ public:
     bool hasEnoughMana(int amount) const;
 
     Skill& getSkill(int index);
+
+    const std::vector<Skill>& getSkillsList() const;
 
     void onRoundEnd();
 

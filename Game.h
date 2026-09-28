@@ -16,6 +16,7 @@
 #include "KillRewarder.h"
 #include "Bloodlust.h"
 #include "MatchEnded.h"
+#include "EffectSystem.h"
 
 enum class PostGameChoice {
     Rematch,
@@ -32,6 +33,8 @@ private:
 
     std::vector<std::unique_ptr<Character>> characters;
 
+    std::vector<std::unique_ptr<Character>> deadCharacters;
+
     ActionExecutor executor;
 
     EventBus eventBus;
@@ -42,9 +45,13 @@ private:
 
     Bloodlust bloodlust;
 
+    EffectSystem effectSystem;
+
     Character* playerCharacter = nullptr;
 public:
     ActionType action;
+
+    int selectedSkillIndex = -1;
 
     Game(){
         characterAdder();
@@ -65,6 +72,12 @@ public:
                 [&](const CharacterKilled& event)
                 {
                     bloodlust.onCharacterKilled(event);
+                }
+        );
+        eventBus.subscribe<CharacterKilled>(
+                [&](const CharacterKilled& event)
+                {
+                    effectSystem.deleteDeadTargetEffect(event);
                 }
         );
         eventBus.subscribe<MatchEnded>(
