@@ -39,6 +39,7 @@ protected:
 
     int currentCoolDown;
 
+    static std::vector<Skill> skillDefinitions;
 public:
 
 
@@ -62,6 +63,10 @@ public:
     bool providesHealing() const;
 
     bool providesDamaging() const;
+
+    static void skillCreator();
+
+    static Skill& findSkill(const std::string& name);
 };
 
 

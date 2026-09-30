@@ -111,24 +111,21 @@ void Game::characterAdder() {
 }
 
 void Game::skillAdder() {
-    Skill fireball("Fireball",{{DamageData{70}}}, 20, 2);
-    Skill heal("Heal",{{HealData{50}}}, 10, 1);
-    Skill poisonStrike("PoisonStrike",{{PersistentDamageData{10,3}}}, 15, 3);
-    Skill regeneration("Regeneration",{{PersistentHealData{10,2}}}, 15, 2);
-    Skill venomStrike("VenomStrike",{{DamageData{40}},{PersistentDamageData{5,2}}},20,2);
-    characters[0]->addSkill(poisonStrike);
-    characters[0]->addSkill(heal);
-    characters[1]->addSkill(fireball);
-    characters[1]->addSkill(heal);
-    characters[1]->addSkill(regeneration);
-    characters[2]->addSkill(regeneration);
-    characters[2]->addSkill(heal);
-    characters[2]->addSkill(poisonStrike);
-    characters[3]->addSkill(regeneration);
-    characters[3]->addSkill(venomStrike);
-    characters[3]->addSkill(poisonStrike);
-    characters[4]->addSkill(fireball);
-    characters[4]->addSkill(heal);
+    Skill::skillCreator();
+
+    characters[0]->addSkill(Skill::findSkill("PoisonStrike"));
+    characters[0]->addSkill(Skill::findSkill("Heal"));
+    characters[1]->addSkill(Skill::findSkill("Fireball"));
+    characters[1]->addSkill(Skill::findSkill("Heal"));
+    characters[1]->addSkill(Skill::findSkill("Regeneration"));
+    characters[2]->addSkill(Skill::findSkill("Regeneration"));
+    characters[2]->addSkill(Skill::findSkill("Heal"));
+    characters[2]->addSkill(Skill::findSkill("PoisonStrike"));
+    characters[3]->addSkill(Skill::findSkill("Regeneration"));
+    characters[3]->addSkill(Skill::findSkill("VenomStrike"));
+    characters[3]->addSkill(Skill::findSkill("PoisonStrike"));
+    characters[4]->addSkill(Skill::findSkill("Fireball"));
+    characters[4]->addSkill(Skill::findSkill("Heal"));
 }
 
 int Game::chooseTarget() {
@@ -189,7 +186,7 @@ ActionType Game::chooseAction() {
             if (chooseAct == 1){
                 selectedSkillIndex = -1;
                 return ActionType::Attack;
-            } else if (chooseAct >= 2 && static_cast<int>(playerCharacter->getSkillsList().size()+2)){
+            } else if (chooseAct >= 2 && chooseAct < static_cast<int>(playerCharacter->getSkillsList().size()+2)){
                 selectedSkillIndex = chooseAct - 2;
                 return ActionType::UseSkill;
             }

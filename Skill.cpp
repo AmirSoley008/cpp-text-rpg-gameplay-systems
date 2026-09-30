@@ -88,3 +88,24 @@ bool Skill::providesDamaging() const {
         }
     }return false;
 }
+
+std::vector<Skill> Skill::skillDefinitions;
+
+void Skill::skillCreator() {
+    if (!skillDefinitions.empty()){
+        return;
+    }
+    skillDefinitions.emplace_back("Fireball",std::vector<Operation>{{DamageData{70}}}, 20, 2);
+    skillDefinitions.emplace_back("Heal",std::vector<Operation>{{HealData{50}}}, 10, 1);
+    skillDefinitions.emplace_back("PoisonStrike",std::vector<Operation>{{PersistentDamageData{10,3}}}, 15, 3);
+    skillDefinitions.emplace_back("Regeneration",std::vector<Operation>{{PersistentHealData{10,2}}}, 15, 2);
+    skillDefinitions.emplace_back("VenomStrike",std::vector<Operation>{{DamageData{40}},{PersistentDamageData{5,2}}},20,2);
+}
+
+Skill& Skill::findSkill(const std::string &name) {
+    for (auto& skill:skillDefinitions) {
+        if (skill.getSkillName() == name){
+            return skill;
+        }
+    }
+}
