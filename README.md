@@ -152,6 +152,60 @@ Skill venomStrike(
 
 The ability therefore applies immediate damage and also creates a persistent damage effect without requiring special handling in `Game` or `ActionExecutor`.
 
+### Data-Driven Ability Definitions
+
+Abilities are defined through composable operation data rather than separate classes or hardcoded execution branches for each ability.
+
+Each `Skill` contains a sequence of `Operation` objects, and each operation stores one of the supported operation data types:
+
+* `DamageData`
+* `HealData`
+* `PersistentDamageData`
+* `PersistentHealData`
+
+This allows different abilities to be created by combining existing operations.
+
+For example:
+
+```text
+Fireball
+    → Damage
+
+Heal
+    → Heal
+
+PoisonStrike
+    → Persistent Damage
+
+Regeneration
+    → Persistent Heal
+
+VenomStrike
+    → Damage + Persistent Damage
+```
+
+The execution logic is handled by `Skill::use()`, which validates the skill usage, applies its resource and cooldown changes, and executes the composed operations.
+
+This keeps ability-specific content inside the ability definitions instead of requiring changes to `Game` or `ActionExecutor` whenever a new combination of existing operations is introduced.
+
+### Skill Definition Registry
+
+Skill definitions are stored in an internal registry managed by `Skill`.
+
+```cpp
+Skill::skillCreator();
+Skill::findSkill("Fireball");
+```
+
+The registry stores reusable skill definitions. When a character receives a skill, the definition is copied into the character's own skill collection.
+
+This creates a clear distinction between:
+
+* **Skill Definition:** reusable ability data and behavior.
+* **Character Skill Instance:** runtime state such as cooldown.
+
+Because each character owns its own `Skill` instance, cooldown state remains independent between characters while the underlying ability definition can be reused.
+
 ## Effect System
 
 Persistent gameplay effects are separated from direct skill execution.
