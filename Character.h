@@ -87,6 +87,8 @@ public:
     void onRoundEnd();
 
     void addMana(int amount);
+
+    int getDamageAmount();
 };
 
 

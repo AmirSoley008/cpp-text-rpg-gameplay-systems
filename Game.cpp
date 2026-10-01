@@ -7,6 +7,8 @@
 #include "Character.h"
 #include "Skill.h"
 #include <limits>
+#include <thread>
+#include <chrono>
 
 void Game::start() {
     std::cout << "Round " << round << " Starts" << std::endl;
@@ -18,15 +20,18 @@ void Game::start() {
             if (executor.execute(action, selectedSkillIndex, currentCharacter(), *characters[targetIndex], effectSystem) == Result::Success){
                 if (!characters[targetIndex]->isAlive()) {
                     eventBus.publish(CharacterKilled(&currentCharacter() , &*characters[targetIndex]));
-                    if (effectSystem.hasActiveEffectsFrom(characters[targetIndex].get())){
-                        deadCharacters.push_back(std::move(characters[targetIndex]));
+                    deadCharacters.push_back(std::move(characters[targetIndex]));
+                    if (targetIndex < activeCharacterIndex) {
+                        activeCharacterIndex--;
                     }
                     characters.erase(characters.begin() + targetIndex);
                 }
                 break;
             } else std::cout << "choose Action again!" << std::endl;
         } if (characters.size() == 1){
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             eventBus.publish(MatchEnded(&*characters[0]));
+            std::this_thread::sleep_for(std::chrono::milliseconds(700));
             PostGameChoice choice = postGameChoice();
             if (choice == PostGameChoice::Rematch){
                 resetMatch();
@@ -37,6 +42,7 @@ void Game::start() {
             }
         } else {
             activeCharacterIndex ++;
+            std::this_thread::sleep_for(std::chrono::milliseconds(750));
             if (activeCharacterIndex >= characters.size()){
                 activeCharacterIndex = 0;
                 for (auto& character : characters) {
@@ -46,7 +52,6 @@ void Game::start() {
                 if (!deathReport.empty()){
                     for (const auto &reaport:deathReport) {
                         for (auto &victim:reaport.second) {
-                            eventBus.publish(CharacterKilled(reaport.first, victim));
                             auto it = std::find_if(
                                     characters.begin(),
                                     characters.end(),
@@ -56,23 +61,21 @@ void Game::start() {
                                     }
                                     );
                             if (it != characters.end()) {
-                                if (effectSystem.hasActiveEffectsFrom(victim)){
-                                    deadCharacters.push_back(std::move(*it));
+                                int targetIndex =std::distance(characters.begin(),it);
+                                if (targetIndex < activeCharacterIndex) {
+                                    activeCharacterIndex--;
                                 }
+                                eventBus.publish(CharacterKilled(reaport.first, victim));
+                                deadCharacters.push_back(std::move(*it));
                                 characters.erase(it);
                             }
                         }
                     }
                 }
-                for (auto it = deadCharacters.begin(); it != deadCharacters.end();) {
-                    if (!effectSystem.hasActiveEffectsFrom(it->get())) {
-                        it = deadCharacters.erase(it);
-                    } else {
-                        ++it;
-                    }
-                }
                 if (characters.size() == 1){
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
                     eventBus.publish(MatchEnded(&*characters[0]));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(700));
                     PostGameChoice choice = postGameChoice();
                     if (choice == PostGameChoice::Rematch){
                         resetMatch();
@@ -82,7 +85,9 @@ void Game::start() {
                         gameContinue = false;
                     }
                 } else if (characters.empty()){
+                    std::this_thread::sleep_for(std::chrono::milliseconds(700));
                     std::cout << "The match ended in a draw!" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(700));
                     PostGameChoice choice = postGameChoice();
                     if (choice == PostGameChoice::Rematch){
                         resetMatch();
@@ -95,6 +100,7 @@ void Game::start() {
                 if (gameContinue) {
                     round++;
                     std::cout << "Round " << round << " Starts" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 }
             }
         }
@@ -153,28 +159,64 @@ int Game::chooseTarget() {
             }
         }
     }else {
-        int choose;
         const auto &skills = currentCharacter().getSkillsList();
         if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing()) {
-            choose = activeCharacterIndex;
-            return choose;
+            return activeCharacterIndex;
         }
         else {
-            choose = rand() % characters.size();
-            while (choose == activeCharacterIndex) choose = rand() % characters.size();
-            return choose;
+            if (action == ActionType::Attack){
+                for (int i = 0; i < characters.size(); ++i) {
+                    if (activeCharacterIndex == i){
+                        continue;
+                    } if (currentCharacter().getDamageAmount() >= characters[i]->getHealth()){
+                        return i;
+                    }
+                }
+                return getRandomEnemyIndex();
+            } else {
+                if (auto damage = skills[selectedSkillIndex].getSkillDamage()) {
+                    for (int i = 0; i < characters.size(); ++i) {
+                        if (activeCharacterIndex == i){
+                            continue;
+                        } if (*damage >= characters[i]->getHealth()){
+                            return i;
+                        }
+                    }
+                    return getRandomEnemyIndex();
+                }
+                return getRandomEnemyIndex();
+            }
         }
     }
+}
+
+int Game::getRandomEnemyIndex()
+{
+    std::uniform_int_distribution<int> distribution(
+            0,
+            static_cast<int>(characters.size()) - 2
+    );
+
+    int randomIndex = distribution(generator);
+
+    if (randomIndex >= activeCharacterIndex) {
+        ++randomIndex;
+    }
+
+    return randomIndex;
 }
 
 ActionType Game::chooseAction() {
     if (&currentCharacter() == playerCharacter) {
         while (true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
             std::cout << "what action do you want to perform?"
-                      << std::endl
-                      << "1.Attack!!"
+                      << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            std::cout << "1.Attack!!"
                       << std::endl;
             for (int i = 0; i < playerCharacter->getSkillsList().size(); ++i) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(300));
                 std::cout << i + 2
                           << "."
                           << playerCharacter->getSkillsList()[i].getSkillName()
@@ -221,6 +263,7 @@ void Game::selectPlayerCharacter() {
     std::cout << "Choose your Champion"
               << std::endl
               << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     int playerChoice;
 
@@ -228,6 +271,7 @@ void Game::selectPlayerCharacter() {
         for (int i = 0; i < characters.size(); ++i) {
             std::cout << i + 1 << ")";
             characters[i]->printInfo();
+            std::this_thread::sleep_for(std::chrono::milliseconds(750));
         }
 
         std::cin >> playerChoice;

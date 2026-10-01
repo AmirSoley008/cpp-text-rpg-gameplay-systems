@@ -10,6 +10,7 @@
 #include <vector>
 #include "EffectRegistrar.h"
 #include "OperationData.h"
+#include <optional>
 class Character;
 
 struct SkillStats{
@@ -67,6 +68,8 @@ public:
     static void skillCreator();
 
     static Skill& findSkill(const std::string& name);
+
+    std::optional<int> getSkillDamage() const;
 };
 
 

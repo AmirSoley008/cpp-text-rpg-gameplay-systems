@@ -99,7 +99,7 @@ The project currently keeps the main gameplay coordination inside `Game`.
 
 Character objects are owned by `Game` through `std::unique_ptr`. The selected player character is tracked separately through a non-owning pointer, so the player's identity does not depend on the character's position in the turn order.
 
-Active persistent effects are owned by `EffectSystem`. When an effect references a character that dies, the character remains alive in memory while required by an active effect. Effect cleanup is handled by the effect system and gameplay lifecycle.
+Active persistent effects are owned by `EffectSystem`. Dead characters are moved from the active character collection to `deadCharacters` and remain alive there until the match ends. This keeps non-owning references held by gameplay systems valid throughout the match.
 
 The architecture is intentionally kept small. New abstractions are introduced when they solve an actual problem rather than simply because they are common game-development patterns.
 
@@ -232,7 +232,7 @@ The current ownership model is:
 * `EffectSystem` owns active `Effect` objects.
 * `Skill` creates effects but does not own them.
 * `EffectRegistrar` provides a narrow interface for effect registration.
-* Active effects may keep a dead character alive until the effect no longer references that character.
+* Dead characters are moved to `deadCharacters` and remain alive until the match ends.
 
 This separates creation, ownership, and lifecycle responsibilities between the gameplay systems.
 
@@ -250,6 +250,40 @@ The selected skill is represented separately by its skill index.
 This means `ActionExecutor` does not need to know whether a `UseSkill` action represents `Fireball`, `Heal`, `PoisonStrike`, or another ability.
 
 Adding a new ability therefore does not require adding a new `ActionType` or modifying the generic action execution logic.
+
+## Combat Architecture
+
+The combat flow is coordinated by `Game` as the combat orchestrator.
+
+A turn follows this general lifecycle:
+
+1. Action Selection
+2. Target Selection
+3. Action Execution
+4. Immediate Resolution
+5. Character Death Detection
+6. Turn Advancement
+7. Round-End Processing
+8. Cooldown Updates
+9. Persistent Effect Updates
+10. Match Resolution
+
+`ActionExecutor` provides the execution boundary for generic combat actions, while `Skill` handles the execution of the operations that make up an ability.
+
+When a character dies during direct action resolution, `Game` publishes a `CharacterKilled` event and then moves the character from the active character collection to `deadCharacters`.
+
+At the end of a round, `Game` advances cooldowns and asks `EffectSystem` to update persistent effects. If an effect causes a character to die, `EffectSystem` reports the death back to `Game`, which handles the character's lifecycle and publishes the corresponding `CharacterKilled` event.
+
+This keeps combat orchestration, action execution, ability behavior, effect management, event reactions, and character ownership as separate responsibilities.
+
+The current AI uses a simple rule-based targeting strategy:
+
+* Healing abilities target the AI-controlled character itself.
+* Immediate damage that can kill an enemy takes priority when selecting a target.
+* If no enemy can be killed immediately, a random enemy is selected.
+* Persistent damage is not considered for immediate kill checks.
+
+The AI is intentionally kept simple for the scope of this project. More advanced decision-making is outside the current gameplay systems laboratory.
 
 ## Event-Driven Architecture
 

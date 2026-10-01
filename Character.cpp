@@ -3,6 +3,8 @@
 //
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include "Character.h"
 #include "Skill.h"
 
@@ -53,6 +55,7 @@ void Character::useMana(int manaCost) {
 void Character::attack(Character &target) {
     std::cout << name << this->getAttackMessage() << std::endl;
     target.takeDamage(stats.damage);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     std::cout <<name
               << " attacks "
               <<target.getName()
@@ -62,6 +65,7 @@ void Character::attack(Character &target) {
               <<target.getHealth()
               <<"\\"
               <<target.getMaxHealth()<<std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
     if (!target.isAlive()) std::cout<< target.getName() <<" is dead!"<<std::endl;
 }
 
@@ -112,6 +116,7 @@ bool Character::useSkill(int index, Character &target, EffectRegistrar& effectRe
     if (index >=0 && index < skills.size()) {
         Skill &skill = skills[index];
         std::cout << this->getName() << " wants to use " << skill.getSkillName() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (skill.use(*this, target, effectRegistrar)) {
             std::cout << this->getName() << " used a " << skill.getSkillName() << " on " << target.getName()
                       << std::endl;
@@ -120,6 +125,7 @@ bool Character::useSkill(int index, Character &target, EffectRegistrar& effectRe
                       << target.getHealth()
                       << "\\"
                       << target.getMaxHealth() << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
             return true;
         } else return false;
     } else return false;
@@ -141,4 +147,8 @@ void Character::onRoundEnd() {
 
 const std::vector<Skill>& Character::getSkillsList() const{
     return skills;
+}
+
+int Character::getDamageAmount() {
+    return stats.damage;
 }

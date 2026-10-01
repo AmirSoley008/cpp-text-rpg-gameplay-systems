@@ -19,8 +19,6 @@ private:
     std::vector<std::unique_ptr<Effect>> activeEffects;
 
 public:
-    ~EffectSystem();
-
     std::unordered_map<Character* , std::vector<Character*>> update();
 
     void registerEffect(std::unique_ptr<Effect> effect) override;
@@ -28,8 +26,6 @@ public:
     void resetActiveEffects();
 
     void deleteDeadTargetEffect(const CharacterKilled& event);
-
-    bool hasActiveEffectsFrom(Character* target);
 };
 
 

@@ -17,6 +17,7 @@
 #include "Bloodlust.h"
 #include "MatchEnded.h"
 #include "EffectSystem.h"
+#include <random>
 
 enum class PostGameChoice {
     Rematch,
@@ -48,6 +49,8 @@ private:
     EffectSystem effectSystem;
 
     Character* playerCharacter = nullptr;
+
+    std::mt19937 generator{std::random_device{}()};
 public:
     ActionType action;
 
@@ -114,6 +117,8 @@ public:
     void resetMatch();
 
     PostGameChoice postGameChoice();
+
+    int getRandomEnemyIndex();
 };
 
 

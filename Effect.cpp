@@ -34,5 +34,5 @@ Character* Effect::getTarget() const {
 }
 
 Character* Effect::getCaster() const {
-    return target;
+    return caster;
 }

@@ -5,8 +5,6 @@
 #include "EffectSystem.h"
 #include "Effect.h"
 
-EffectSystem::~EffectSystem() = default;
-
 void EffectSystem::registerEffect(std::unique_ptr<Effect> effect) {
     activeEffects.push_back(std::move(effect));
 }
@@ -43,12 +41,4 @@ void EffectSystem::deleteDeadTargetEffect(const CharacterKilled &event) {
             it = activeEffects.erase(it);
         } else ++it;
     }
-}
-
-bool EffectSystem::hasActiveEffectsFrom(Character* target) {
-    for (auto it = activeEffects.begin(); it != activeEffects.end(); it++){
-        if (target == (*it)->getCaster()){
-            return true;
-        }
-    } return false;
 }

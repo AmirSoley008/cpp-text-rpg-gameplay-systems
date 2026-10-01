@@ -109,3 +109,12 @@ Skill& Skill::findSkill(const std::string &name) {
         }
     }
 }
+
+std::optional<int> Skill::getSkillDamage() const{
+    for (const auto& operation: operations){
+        if (const auto& damage = std::get_if<DamageData>(&operation.data)){
+            return damage->amount;
+        }
+    }
+    return std::nullopt;
+}
