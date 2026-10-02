@@ -88,7 +88,7 @@ public:
 
     void addMana(int amount);
 
-    int getDamageAmount();
+    int getDamageAmount() const;
 };
 
 

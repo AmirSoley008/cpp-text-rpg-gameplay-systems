@@ -35,13 +35,13 @@ bool Skill::use(Character& caster, Character& target, EffectRegistrar& effectReg
                 target.takeDamage(data.amount);
             }
             else if constexpr (std::is_same_v<T, HealData>){
-                target.heal(data.amount);
+                caster.heal(data.amount);
             }
             else if constexpr (std::is_same_v<T, PersistentDamageData>){
                 effectRegistrar.registerEffect(std::make_unique<Effect>(&caster,&target,data));
             }
             else if constexpr (std::is_same_v<T, PersistentHealData>){
-                effectRegistrar.registerEffect(std::make_unique<Effect>(&caster,&target,data));
+                effectRegistrar.registerEffect(std::make_unique<Effect>(&caster,&caster,data));
             }
             }, operation.data);
     }return true;
@@ -100,6 +100,7 @@ void Skill::skillCreator() {
     skillDefinitions.emplace_back("PoisonStrike",std::vector<Operation>{{PersistentDamageData{10,3}}}, 15, 3);
     skillDefinitions.emplace_back("Regeneration",std::vector<Operation>{{PersistentHealData{10,2}}}, 15, 2);
     skillDefinitions.emplace_back("VenomStrike",std::vector<Operation>{{DamageData{40}},{PersistentDamageData{5,2}}},20,2);
+    skillDefinitions.emplace_back("VampireStrike",std::vector<Operation>{{DamageData{40}},{HealData{20}}},25,3);
 }
 
 Skill& Skill::findSkill(const std::string &name) {

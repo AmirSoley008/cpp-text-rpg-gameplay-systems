@@ -130,27 +130,24 @@ void Game::skillAdder() {
     characters[3]->addSkill(Skill::findSkill("Regeneration"));
     characters[3]->addSkill(Skill::findSkill("VenomStrike"));
     characters[3]->addSkill(Skill::findSkill("PoisonStrike"));
+    characters[3]->addSkill(Skill::findSkill("VampireStrike"));
     characters[4]->addSkill(Skill::findSkill("Fireball"));
     characters[4]->addSkill(Skill::findSkill("Heal"));
 }
 
 int Game::chooseTarget() {
     if (&currentCharacter() == playerCharacter) {
-        while (true) {
-            std::cout << "Who is your target?" << std::endl;
-            for (int i = 0; i < characters.size(); ++i) {
-                std::cout << i << "." << characters[i]->getName() << std::endl;
-            }
-            int choose;
-            std::cin >> choose;
-            const auto &skills = currentCharacter().getSkillsList();
-            if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing()) {
-                if (choose >= 0 && choose <= characters.size() - 1) {
-                    return choose;
-                } else {
-                    std::cout << "chosen number is not valid!" << std::endl;
+        const auto &skills = currentCharacter().getSkillsList();
+        if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing() && !skills[selectedSkillIndex].providesDamaging()) {
+            return activeCharacterIndex;
+        } else {
+            while (true) {
+                std::cout << "Who is your target?" << std::endl;
+                for (int i = 0; i < characters.size(); ++i) {
+                    std::cout << i << "." << characters[i]->getName() << std::endl;
                 }
-            } else {
+                int choose;
+                std::cin >> choose;
                 if (choose >= 0 && choose <= characters.size() - 1 && choose != activeCharacterIndex) {
                     return choose;
                 } else {
@@ -160,7 +157,7 @@ int Game::chooseTarget() {
         }
     }else {
         const auto &skills = currentCharacter().getSkillsList();
-        if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing()) {
+        if (action == ActionType::UseSkill && skills[selectedSkillIndex].providesHealing() && !skills[selectedSkillIndex].providesDamaging()) {
             return activeCharacterIndex;
         }
         else {

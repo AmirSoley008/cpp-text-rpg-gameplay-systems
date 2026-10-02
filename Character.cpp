@@ -149,6 +149,6 @@ const std::vector<Skill>& Character::getSkillsList() const{
     return skills;
 }
 
-int Character::getDamageAmount() {
+int Character::getDamageAmount() const {
     return stats.damage;
 }
