@@ -132,6 +132,25 @@ Current operation data types include:
 * `PersistentDamageData`
 * `PersistentHealData`
 
+### Operation Targeting Rules
+
+Each operation type has a defined target based on its gameplay semantics:
+
+* `DamageData` → Target
+* `PersistentDamageData` → Target
+* `HealData` → Caster
+* `PersistentHealData` → Caster
+
+This allows composite abilities to combine effects with different recipients.
+
+For example, an ability can deal damage to an enemy while healing its caster without requiring a separate target system:
+
+```text
+Vampiric Strike
+    → Damage → Target
+    → Heal   → Caster
+```
+
 A skill can contain multiple operations, and the operations are executed sequentially when the skill is used.
 
 This allows composite abilities to be represented through data composition instead of creating a separate class or execution path for every ability.
