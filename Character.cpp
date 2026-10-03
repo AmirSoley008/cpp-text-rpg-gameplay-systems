@@ -70,9 +70,11 @@ void Character::attack(Character &target) {
 }
 
 Stats Character::getDefaultStats(CharacterClass characterClass) {
-    if (characterClass == CharacterClass::Warrior)return {250 , 350, 30, 35, 50};
-    if (characterClass == CharacterClass::Mage)return {200 , 250, 60, 65, 30};
-    if (characterClass == CharacterClass::Archer)return {200 , 250, 40, 45, 40};
+    if (characterClass == CharacterClass::Warrior)return {250 , 300, 40, 55, 45};
+    if (characterClass == CharacterClass::Mage)return {200 , 250, 70, 85, 30};
+    if (characterClass == CharacterClass::Archer)return {150 , 200, 50, 55, 40};
+    if (characterClass == CharacterClass::Bulky)return {300 , 350, 20, 30, 45};
+    if (characterClass == CharacterClass::Vampire)return {140 , 180, 50, 65, 35};
     return {0,0,0,0,0};
 }
 
@@ -90,6 +92,12 @@ void Character::printInfo() {
         case CharacterClass::Archer:
             std::cout << "Archer"<<std::endl;
             break;
+        case CharacterClass::Bulky:
+            std::cout << "Bulky"<<std::endl;
+            break;
+        case CharacterClass::Vampire:
+            std::cout << "Vampire"<<std::endl;
+            break;
     }
     std::cout <<"name is "
               <<name
@@ -104,6 +112,12 @@ void Character::printInfo() {
               <<stats.damage
               <<std::endl
               << std::endl ;
+
+    for (const auto& skill : skills)
+    {
+        skill.printSkillsInfo();
+        std::cout << " , ";
+    } std::cout << "\n" << "\n";
 }
 
 void Character::addSkill(const Skill& skil) {

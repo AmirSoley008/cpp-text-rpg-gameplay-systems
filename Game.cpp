@@ -109,30 +109,41 @@ void Game::start() {
 
 
 void Game::characterAdder() {
-    characters.push_back(std::make_unique<Warrior>("geralt"));
-    characters.push_back(std::make_unique<Mage>("yen"));
-    characters.push_back(std::make_unique<Archer>("legolas"));
-    characters.push_back(std::make_unique<Warrior>("John snow"));
-    characters.push_back(std::make_unique<Archer>("Aragorn"));
+    characters.push_back(std::make_unique<Warrior>("Darian"));
+    characters.push_back(std::make_unique<Mage>("Maelor"));
+    characters.push_back(std::make_unique<Archer>("Sylven"));
+    characters.push_back(std::make_unique<Bulky>("Torven"));
+    characters.push_back(std::make_unique<Vampire>("Eryx"));
 }
 
 void Game::skillAdder() {
     Skill::skillCreator();
 
-    characters[0]->addSkill(Skill::findSkill("PoisonStrike"));
-    characters[0]->addSkill(Skill::findSkill("Heal"));
+    characters[0]->addSkill(Skill::findSkill("Heavy Slash"));
+    characters[0]->addSkill(Skill::findSkill("Poison Slash"));
+    characters[0]->addSkill(Skill::findSkill("Rest And Peace"));
+    characters[0]->addSkill(Skill::findSkill("One Bite Each Time"));
     characters[1]->addSkill(Skill::findSkill("Fireball"));
-    characters[1]->addSkill(Skill::findSkill("Heal"));
-    characters[1]->addSkill(Skill::findSkill("Regeneration"));
-    characters[2]->addSkill(Skill::findSkill("Regeneration"));
-    characters[2]->addSkill(Skill::findSkill("Heal"));
-    characters[2]->addSkill(Skill::findSkill("PoisonStrike"));
-    characters[3]->addSkill(Skill::findSkill("Regeneration"));
-    characters[3]->addSkill(Skill::findSkill("VenomStrike"));
-    characters[3]->addSkill(Skill::findSkill("PoisonStrike"));
-    characters[3]->addSkill(Skill::findSkill("VampireStrike"));
-    characters[4]->addSkill(Skill::findSkill("Fireball"));
-    characters[4]->addSkill(Skill::findSkill("Heal"));
+    characters[1]->addSkill(Skill::findSkill("Burning Fury"));
+    characters[1]->addSkill(Skill::findSkill("Idle Evil Spirits"));
+    characters[1]->addSkill(Skill::findSkill("potion"));
+    characters[1]->addSkill(Skill::findSkill("Healing magic"));
+    characters[1]->addSkill(Skill::findSkill("Leech Spirit"));
+    characters[2]->addSkill(Skill::findSkill("Rapid Arrows"));
+    characters[2]->addSkill(Skill::findSkill("Focus shot"));
+    characters[2]->addSkill(Skill::findSkill("Poison shot"));
+    characters[2]->addSkill(Skill::findSkill("Burning Wound"));
+    characters[2]->addSkill(Skill::findSkill("Medicinal plant of the Elves' forest"));
+    characters[2]->addSkill(Skill::findSkill("death refuser"));
+    characters[2]->addSkill(Skill::findSkill("Rain of Arrows"));
+    characters[3]->addSkill(Skill::findSkill("Heavy Punch"));
+    characters[3]->addSkill(Skill::findSkill("Tyson mod"));
+    characters[3]->addSkill(Skill::findSkill("Boneacher"));
+    characters[3]->addSkill(Skill::findSkill("Timeout!!"));
+    characters[4]->addSkill(Skill::findSkill("Blood Drinker"));
+    characters[4]->addSkill(Skill::findSkill("Thirst of the Damned"));
+    characters[4]->addSkill(Skill::findSkill("Sanguine Curse"));
+    characters[4]->addSkill(Skill::findSkill("Fang of Renewal"));
 }
 
 int Game::chooseTarget() {

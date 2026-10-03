@@ -30,7 +30,9 @@ struct Stats{
 enum class CharacterClass {
     Warrior,
     Mage,
-    Archer
+    Archer,
+    Bulky,
+    Vampire
 };
 
 class Character{

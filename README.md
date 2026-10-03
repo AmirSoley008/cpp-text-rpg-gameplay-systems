@@ -375,6 +375,92 @@ When only one character remains alive, the match ends and a `MatchEnded` event i
 
 A rematch creates a new set of characters, resets the match state, and allows the player to select a character again.
 
+## Final Character Roster
+
+The final prototype includes five combatants, each with a distinct gameplay identity:
+
+| Character | Class   | Identity                                                                 |
+| --------- | ------- | ------------------------------------------------------------------------ |
+| Darian    | Warrior | High damage and health, balanced by limited mana and longer cooldowns    |
+| Maelor    | Mage    | High mana and flexible skill usage, balanced by lower damage             |
+| Sylven    | Archer  | Low-cost skills and broad ability access, balanced by low health         |
+| Torven    | Bulky   | High health and damage, balanced by very limited mana and high cooldowns |
+| Eryx      | Vampire | Damage-and-healing abilities with low maximum health                     |
+
+The roster is intentionally small. Character differences are created primarily through stats, skill availability, mana costs, cooldowns, and operation-based ability composition rather than separate character-specific gameplay frameworks.
+
+## Gameplay Identity
+
+Each character is designed around a different resource-management problem:
+
+* **Warrior:** Manage powerful but expensive and slower skills.
+* **Mage:** Convert high mana availability into flexible ability usage.
+* **Archer:** Exploit low-cost abilities while managing low survivability.
+* **Bulky:** Make careful decisions with very limited mana and long cooldowns.
+* **Vampire:** Use damage-and-healing combinations to survive despite low maximum health.
+
+These identities are implemented through the same underlying gameplay systems rather than character-specific execution logic.
+
+## Final Ability Set
+
+The prototype contains 25 skills distributed across the five characters.
+
+Skills are built from composable operations such as:
+
+* `DamageData`
+* `HealData`
+* `PersistentDamageData`
+* `PersistentHealData`
+
+This allows a single skill to combine multiple effects without requiring a separate hard-coded implementation for every ability.
+
+The final ability set includes:
+
+* Direct damage
+* Direct self-healing
+* Persistent damage
+* Persistent healing
+* Damage and healing combinations
+* Multiple independent persistent effects
+* Composite abilities built from existing operations
+
+### Ability Targeting Rules
+
+Skill operations have defined targeting semantics:
+
+* `DamageData` → Target
+* `PersistentDamageData` → Target
+* `HealData` → Caster
+* `PersistentHealData` → Caster
+
+This allows composite abilities to express mechanics such as lifesteal and self-regeneration without introducing separate ability types.
+
+## Final Prototype Status
+
+The gameplay prototype has completed its implementation and validation phase.
+
+Validated systems include:
+
+* Turn-based combat flow
+* Player and AI action selection
+* Action execution
+* Mana and cooldown management
+* Direct and persistent damage/healing
+* Operation-based skill composition
+* Effect lifecycle and cleanup
+* Character death and lifetime management
+* Event-driven gameplay reactions
+* Kill rewards and kill-streak rewards
+* Combat statistics
+* Match completion
+* Rematch and exit flow
+* AI target-selection rules
+* Input validation
+* Regression testing
+* Full integration playthroughs
+
+The project is now treated as a completed Gameplay Systems Laboratory for Campaign 1 rather than an expanding RPG feature project.
+
 ## Project Direction
 
 This is an engineering project, not a content-heavy RPG.

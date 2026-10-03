@@ -13,12 +13,6 @@ public:
     Mage(const std::string& name);
 
     std::string getAttackMessage() const override;
-
-    //void attack(Character& target)override;
-
-    //void takeDamage(int damage)override;
-
-
 };
 
 

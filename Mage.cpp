@@ -12,6 +12,6 @@ Mage::Mage(const std::string &name)
 
 std::string Mage::getAttackMessage() const
 {
-    return " Here comes FIREBALLS!!";
+    return " Aji Maji Lataraji!!";
 }
 

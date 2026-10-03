@@ -9,6 +9,8 @@
 #include "Mage.h"
 #include "Warrior.h"
 #include "Archer.h"
+#include "Bulky.h"
+#include "Vampire.h"
 #include "ActionType.h"
 #include "ActionExecutor.h"
 #include "EventBus.h"

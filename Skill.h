@@ -70,6 +70,8 @@ public:
     static Skill& findSkill(const std::string& name);
 
     std::optional<int> getSkillDamage() const;
+
+    void printSkillsInfo() const;
 };
 
 
