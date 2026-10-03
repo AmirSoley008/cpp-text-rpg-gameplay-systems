@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <cassert>
 #include "Skill.h"
 #include "Character.h"
 #include "Effect.h"
@@ -109,6 +110,8 @@ Skill& Skill::findSkill(const std::string &name) {
             return skill;
         }
     }
+    assert(false && "Skill not found");
+    std::abort();
 }
 
 std::optional<int> Skill::getSkillDamage() const{

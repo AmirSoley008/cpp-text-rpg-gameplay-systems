@@ -10,7 +10,7 @@ void EffectSystem::registerEffect(std::unique_ptr<Effect> effect) {
 }
 
 std::unordered_map<Character* , std::vector<Character*>> EffectSystem::update() {
-    std::unordered_map<Character* , std::vector<Character*>>deathReaport;
+    std::unordered_map<Character* , std::vector<Character*>>deathReport;
     for (auto it = activeEffects.begin(); it != activeEffects.end();) {
         Character* caster = (*it)->getCaster();
         Character* target = (*it)->getTarget();
@@ -19,7 +19,7 @@ std::unordered_map<Character* , std::vector<Character*>> EffectSystem::update() 
             (*it)->updateEffect();
 
             if (!target->isAlive()) {
-                deathReaport[caster].push_back(target);
+                deathReport[caster].push_back(target);
             }
             if ((*it)->isExpired() || !target->isAlive()) {
                 it = activeEffects.erase(it);
@@ -28,7 +28,7 @@ std::unordered_map<Character* , std::vector<Character*>> EffectSystem::update() 
             it = activeEffects.erase(it);
         }
     }
-    return deathReaport;
+    return deathReport;
 }
 
 void EffectSystem::resetActiveEffects() {
