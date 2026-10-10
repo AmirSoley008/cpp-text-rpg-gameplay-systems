@@ -162,7 +162,14 @@ int Game::chooseTarget() {
                 if (choose >= 0 && choose <= characters.size() - 1 && choose != activeCharacterIndex) {
                     return choose;
                 } else {
-                    std::cout << "chosen number is not valid!" << std::endl;
+                    if (std::cin.fail()) {
+                        std::cin.clear();
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                        std::cout << "Invalid type is chosen please retry noobie"
+                                  << std::endl
+                                  << std::endl;
+                        continue;
+                    }
                 }
             }
         }
@@ -240,7 +247,14 @@ ActionType Game::chooseAction() {
                 selectedSkillIndex = chooseAct - 2;
                 return ActionType::UseSkill;
             }
-            std::cout << "Invalid number is chosen please retry noobie" << std::endl;
+            if (std::cin.fail()) {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "Invalid type is chosen please retry noobie"
+                          << std::endl
+                          << std::endl;
+                continue;
+            }
         }
     } else{
         if (currentCharacter().getHealth() <=50){
